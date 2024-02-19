@@ -1,0 +1,16 @@
+{
+  "name": "min-vue",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm run -r dev-render"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "0.43.1",
+    "eslint": "^8.56.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
