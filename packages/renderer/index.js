@@ -67,7 +67,6 @@ function createRenderer({
   }
 
   function patchElement(n1, n2) {
-    console.log('更新')
     const el = n2.el = n1.el
     const oldProps = n1.props
     const newProps = n2.props
@@ -84,8 +83,31 @@ function createRenderer({
     patchChildren(n1, n2, el)
   }
 
-  function patchChildren(n1, n2, el) {
+  function patchChildren(n1, n2, container) {
     console.log('更新111')
+    debugger
+    if (typeof n2.children === 'string') {
+      // 如果新子节点是string类型
+      // 旧节点的类型： 没有子节点 文本子节点 一组子节点
+      // 如果旧子节点是一组子节点，需要逐个卸载
+      if (Array.isArray(n1.children)) {
+        n1.children.forEach(c => unmount(c))
+      }
+      setElementText(container, n2.children)
+    }
+    else if (Array.isArray(n2.children)) {
+      if (Array.isArray(n1.children)) {
+        // 新旧节点都是array
+        // diff 核心算法
+        // 暂时处理
+        n1.children.forEach(c => unmount(c))
+        n2.children.forEach(c => patch(null, c, container))
+      }
+      else {
+        setElementText(container, '')
+        n2.children.forEach(c => patch(null, c, container))
+      }
+    }
   }
 
   /**
@@ -244,33 +266,65 @@ const vnode3 = {
 
 const bol = ref(false)
 
+// effect(() => {
+//   const vnode = {
+//     type: 'div',
+//     props: bol.value
+//       ? {
+//           onClick(e) {
+//             console.log('clicked outer div')
+//           },
+//         }
+//       : {},
+//     children: [
+//       {
+//         type: 'p',
+//         children: `click me value: ${bol.value}`,
+//         props: {
+//           onClick: (e) => {
+//             if (bol.value) {
+//               bol.value = false
+//             }
+//             else {
+//               bol.value = true
+//             }
+//             console.log('clicke me')
+//           },
+//         },
+//       },
+//     ],
+//   }
+//   // renderer.render(vnode, document.querySelector('#app'))
+// })
+
 effect(() => {
   const vnode = {
     type: 'div',
-    props: bol.value
-      ? {
-          onClick(e) {
-            console.log('clicked outer div')
-          },
-        }
-      : {},
+    // children: `value: ${bol.value}`,
+    // children: bol.value
+    //   ? `value: ${bol.value}`
+    //   : [
+    //       {
+    //         type: 'p',
+    //         children: `p: value: ${bol.value}`,
+    //       },
+    //     ],
     children: [
       {
         type: 'p',
-        children: 'click me',
-        props: {
-          onClick: (e) => {
-            if (bol.value) {
-              bol.value = false
-            }
-            else {
-              bol.value = true
-            }
-            console.log('clicke me')
-          },
-        },
+        children: `p: value: ${bol.value}`,
       },
     ],
+    props: {
+      onClick: () => {
+        if (bol.value) {
+          bol.value = false
+        }
+        else {
+          bol.value = true
+        }
+      },
+    },
   }
   renderer.render(vnode, document.querySelector('#app'))
 })
