@@ -252,6 +252,7 @@ export function createRenderer({
       isMounted: false,
       subTree: null,
       mounted: [],
+      created: [],
     }
 
     function emit(event, ...payload) {
@@ -317,7 +318,7 @@ export function createRenderer({
         }
       },
     })
-
+    instance.created && instance.created.forEach(hook => hook.call(renderContext))
     created && created.call(renderContext)
 
     effect(() => {

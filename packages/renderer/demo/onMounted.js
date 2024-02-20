@@ -1,7 +1,7 @@
 import { effect, ref } from '@vue/reactivity'
 import { Comment, Fragment, Text } from '../core/constant'
 import { renderer } from '../core/dom'
-import { onMounted } from '../core/hook'
+import { onCreated, onMounted } from '../core/hook'
 
 effect(() => {
   const Child = {
@@ -10,14 +10,11 @@ effect(() => {
       childProp: String,
     },
     setup(props, { emit }) {
-      onMounted(() => {
-        console.log('mounted from hook')
+      onCreated(() => {
+        console.log('on created child')
       })
       onMounted(() => {
-        console.log('mounted from hook')
-      })
-      onMounted(() => {
-        console.log('mounted from hook')
+        console.log('mounted from child')
       })
       return {
         emit,
@@ -41,11 +38,8 @@ effect(() => {
   const Parent = {
     name: 'Parent',
     setup() {
-      onMounted(() => {
-        console.log('mounted from parent')
-      })
-      onMounted(() => {
-        console.log('mounted from parent')
+      onCreated(() => {
+        console.log('on created parent')
       })
       onMounted(() => {
         console.log('mounted from parent')
@@ -62,21 +56,21 @@ effect(() => {
         },
       }
     },
-    beforeCreate() {
-      console.log('beforeCreate')
-    },
-    created() {
-      console.log('created')
-    },
-    beforeMount() {
-      console.log('beforeMount')
-    },
-    beforeUpdate() {
-      console.log('beforeUpdate')
-    },
-    updated() {
-      console.log('updated')
-    },
+    // beforeCreate() {
+    //   console.log('beforeCreate')
+    // },
+    // created() {
+    //   console.log('created')
+    // },
+    // beforeMount() {
+    //   console.log('beforeMount')
+    // },
+    // beforeUpdate() {
+    //   console.log('beforeUpdate')
+    // },
+    // updated() {
+    //   console.log('updated')
+    // },
     props: {
       id: String,
       title: String,
