@@ -21,7 +21,6 @@ effect(() => {
       : [
           { type: 'li', children: '4' },
           { type: 'li', children: '5' },
-          { type: 'li', children: '6' },
         ],
   }
   renderer.render(vnode, document.querySelector('#app'))
