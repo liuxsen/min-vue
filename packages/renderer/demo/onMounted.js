@@ -41,6 +41,15 @@ effect(() => {
   const Parent = {
     name: 'Parent',
     setup() {
+      onMounted(() => {
+        console.log('mounted from parent')
+      })
+      onMounted(() => {
+        console.log('mounted from parent')
+      })
+      onMounted(() => {
+        console.log('mounted from parent')
+      })
       const age = ref(1)
       return {
         age,
