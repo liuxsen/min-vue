@@ -1,3 +1,4 @@
+import { effect, reactive } from '@vue/reactivity'
 import { shouldSetAsProps } from '../utils/shouldSetAsProps'
 import { normalizeClass } from '../utils/normalizeClass'
 import { Comment, Fragment, Text } from './constant'
@@ -187,9 +188,40 @@ export function createRenderer({
   // 挂载组件
   function mountComponent(vnode, container, anchor) {
     const componentOptions = vnode.type
-    const { render } = componentOptions
-    const subTree = render()
-    patch(null, subTree, container, anchor)
+    const {
+      render, data,
+      beforeCreated, created,
+      beforeMount, mounted,
+      beforeUpdate, updated,
+    } = componentOptions
+
+    beforeCreated && beforeCreated()
+
+    const state = reactive(data())
+
+    const instance = {
+      state,
+      isMounted: false,
+      subTree: null,
+    }
+    vnode.component = instance
+    created && created.call(state)
+
+    effect(() => {
+      const subTree = render.call(state, state)
+      if (!instance.isMounted) {
+        beforeMount && beforeMount.call(state)
+        patch(null, subTree, container, anchor)
+        instance.isMounted = true
+        mounted && mounted.call(state)
+      }
+      else {
+        beforeUpdate && beforeUpdate.call(state)
+        patch(instance.subTree, subTree, container, anchor)
+        updated && updated.call(state)
+      }
+      instance.subTree = subTree
+    })
   }
   // 更新组件
   function patchComponent(n1, n2, anchor) {
