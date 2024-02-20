@@ -143,6 +143,7 @@ export function createRenderer({
       setElementText(container, n2.children)
     }
     else if (Array.isArray(n2.children)) {
+      // diff 核心
       if (Array.isArray(n1.children)) {
         const oldChildren = n1.children
         const newChildren = n2.children
@@ -152,11 +153,13 @@ export function createRenderer({
           const newVNode = newChildren[i]
           for (let j = 0; j < oldChildren.length; j++) {
             const oldVNode = oldChildren[j]
+            // 复用key标注的元素
             if (newVNode.key === oldVNode.key) {
               find = true
+              // 1. 更新复用的元素
               patch(oldVNode, newVNode, container)
               if (j < lastIndex) {
-                // 需要移动
+                // 2. 移动元素
                 const prevVNode = newChildren[i - 1]
                 if (prevVNode) {
                   const anchor = prevVNode.el.nextSibling
@@ -170,7 +173,7 @@ export function createRenderer({
             }
           }
           if (!find) {
-            // 新增节点
+            // 3. 新增节点
             const preVNode = newChildren[i - 1]
             let anchor = null
             if (preVNode) {
@@ -183,7 +186,7 @@ export function createRenderer({
             patch(null, newVNode, container, anchor)
           }
         }
-        // 删除旧节点操作
+        // 4. 删除旧节点操作
         for (let i = 0; i < oldChildren.length; i++) {
           const oldVNode = oldChildren[i]
           const has = newChildren.find(vnode => vnode.key === oldVNode.key)
