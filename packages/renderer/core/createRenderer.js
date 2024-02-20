@@ -49,6 +49,7 @@ export function createRenderer({
    * @param {dom} container dom
    */
   function patch(n1, n2, container, anchor) {
+    debugger
     // 如果n1存在，对比n1 n2 类型；如果不一致，卸载n1
     if (n1 && n1.type !== n2.type) {
       unmount(n1)
@@ -145,11 +146,11 @@ export function createRenderer({
     }
     else if (Array.isArray(n2.children)) {
       if (Array.isArray(n1.children)) {
-        // 新旧节点都是array
-        // diff 核心算法
-        // 暂时处理
-        n1.children.forEach(c => unmount(c))
-        n2.children.forEach(c => patch(null, c, container))
+        const oldChildren = n1.children
+        const newChildren = n2.children
+        for (let i = 0; i < oldChildren.length; i++) {
+          patch(oldChildren[i], newChildren[i])
+        }
       }
       else {
         setElementText(container, '')
@@ -239,7 +240,6 @@ export function createRenderer({
     created && created.call(renderContext)
 
     effect(() => {
-      debugger
       const subTree = render.call(renderContext, renderContext)
       if (!instance.isMounted) {
         beforeMount && beforeMount.call(renderContext)
