@@ -1,6 +1,7 @@
 import { effect, reactive, shallowReactive, shallowReadonly } from '@vue/reactivity'
 import { normalizeClass } from '../utils/normalizeClass'
 import { Comment, Fragment, Text } from './constant'
+import { setCurrentInstance } from './hook'
 
 // 新建渲染器
 export function createRenderer({
@@ -250,10 +251,10 @@ export function createRenderer({
       props: shallowReactive(props), // props是浅响应的，只要更新了props，就会触发重新渲染
       isMounted: false,
       subTree: null,
+      mounted: [],
     }
 
     function emit(event, ...payload) {
-      debugger
       const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
       const handler = instance.props[eventName]
       if (handler) {
@@ -265,7 +266,10 @@ export function createRenderer({
     }
 
     const setupContext = { attrs, emit }
+    setCurrentInstance(instance)
     const setupResult = setup(shallowReadonly(instance.props), setupContext)
+    setCurrentInstance(null)
+
     // 保存setup返回的数据
     let setupState = null
     if (typeof setupResult === 'function') {
@@ -322,6 +326,7 @@ export function createRenderer({
         beforeMount && beforeMount.call(renderContext)
         patch(null, subTree, container, anchor)
         instance.isMounted = true
+        instance.mounted && instance.mounted.forEach(hook => hook.call(renderContext))
         mounted && mounted.call(renderContext)
       }
       else {
