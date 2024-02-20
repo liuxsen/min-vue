@@ -47,7 +47,7 @@ export function createRenderer({
    * @param {vnode} n2 新node
    * @param {dom} container dom
    */
-  function patch(n1, n2, container) {
+  function patch(n1, n2, container, anchor) {
     // 如果n1存在，对比n1 n2 类型；如果不一致，卸载n1
     if (n1 && n1.type !== n2.type) {
       unmount(n1)
@@ -98,8 +98,15 @@ export function createRenderer({
         patchChildren(n1, n2, container)
       }
     }
-    else if (typeof type === 'object') {
+    else if (typeof n2.type === 'object') {
       // 组件
+      console.log('组件')
+      if (!n1) {
+        mountComponent(n2, container, anchor)
+      }
+      else {
+        patchComponent(n1, n2, anchor)
+      }
     }
     else {
       // 其他类型
@@ -175,6 +182,18 @@ export function createRenderer({
     }
     // container.appendChild(el)
     insert(el, container)
+  }
+
+  // 挂载组件
+  function mountComponent(vnode, container, anchor) {
+    const componentOptions = vnode.type
+    const { render } = componentOptions
+    const subTree = render()
+    patch(null, subTree, container, anchor)
+  }
+  // 更新组件
+  function patchComponent(n1, n2, anchor) {
+
   }
 
   return {
