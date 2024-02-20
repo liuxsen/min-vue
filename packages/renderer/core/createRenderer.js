@@ -289,6 +289,9 @@ export function createRenderer({
         if (state && k in state) {
           state[k] = v
         }
+        else if (setupState && k in setupState) {
+          setupState[k] = v
+        }
         else if (k in props) {
           console.warn('props is readonly')
         }
