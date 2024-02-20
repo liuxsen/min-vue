@@ -251,7 +251,20 @@ export function createRenderer({
       isMounted: false,
       subTree: null,
     }
-    const setupContext = { attrs }
+
+    function emit(event, ...payload) {
+      debugger
+      const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
+      const handler = instance.props[eventName]
+      if (handler) {
+        handler(...payload)
+      }
+      else {
+        console.error('事件不存在')
+      }
+    }
+
+    const setupContext = { attrs, emit }
     const setupResult = setup(shallowReadonly(instance.props), setupContext)
     // 保存setup返回的数据
     let setupState = null
@@ -361,7 +374,8 @@ export function createRenderer({
     const props = {}
     const attrs = {}
     for (const key in propsData) {
-      if (key in options) {
+      // props如果是以on开头；表示是事件函数；作为props
+      if (key in options || key.startsWith('on')) {
         // 如果为组件传递的props数据在options选项中有定义，是合法的props
         props[key] = propsData[key]
       }

@@ -8,8 +8,10 @@ effect(() => {
     props: {
       childProp: String,
     },
-    setup() {
-      return {}
+    setup(props, { emit }) {
+      return {
+        emit,
+      }
     },
     data() {
       return {}
@@ -18,6 +20,11 @@ effect(() => {
       return {
         type: 'div',
         children: `child: ${this.childProp}`,
+        props: {
+          onClick: () => {
+            this.emit('change', 1, 2)
+          },
+        },
       }
     },
   }
@@ -84,7 +91,9 @@ effect(() => {
             type: Child,
             props: {
               childProp: this.info.count,
-
+              onChange(...args) {
+                console.log(args)
+              },
             },
           },
         ],
