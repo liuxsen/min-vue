@@ -1,4 +1,4 @@
-import { effect } from '@vue/reactivity'
+import { effect, ref } from '@vue/reactivity'
 import { shouldSetAsProps } from './utils/shouldSetAsProps'
 import { normalizeClass } from './utils/normalizeClass'
 
@@ -67,7 +67,25 @@ function createRenderer({
   }
 
   function patchElement(n1, n2) {
+    console.log('更新')
+    const el = n2.el = n1.el
+    const oldProps = n1.props
+    const newProps = n2.props
+    for (const key in newProps) {
+      if (newProps[key] !== oldProps[key]) {
+        patchProps(el, key, oldProps[key], newProps[key])
+      }
+    }
+    for (const key in oldProps) {
+      if (!(key in newProps)) {
+        patchProps(el, key, oldProps[key], null)
+      }
+    }
+    patchChildren(n1, n2, el)
+  }
 
+  function patchChildren(n1, n2, el) {
+    console.log('更新111')
   }
 
   /**
@@ -127,6 +145,8 @@ const renderer = createRenderer({
       if (nextValue) {
         if (!invoker) {
           invoker = (e) => {
+            if (e.timeStamp < invoker.attached)
+              return
             if (Array.isArray(invoker.value)) {
               invoker.value.forEach(fn => fn(e))
             }
@@ -137,7 +157,11 @@ const renderer = createRenderer({
           el._evi[key] = invoker
           // invoker 引用不变
           invoker.value = nextValue
+          invoker.attached = performance.now()
           el.addEventListener(name, invoker)
+        }
+        else {
+          invoker.value = nextValue
         }
       }
       else if (invoker) {
@@ -218,7 +242,35 @@ const vnode3 = {
   },
 }
 
-renderer.render(vnode1, document.querySelector('#app'))
-renderer.render(vnode2, document.querySelector('#app'))
-renderer.render(vnode3, document.querySelector('#app'))
-// renderer.render(null, document.querySelector('#app'))
+const bol = ref(false)
+
+effect(() => {
+  const vnode = {
+    type: 'div',
+    props: bol.value
+      ? {
+          onClick(e) {
+            console.log('clicked outer div')
+          },
+        }
+      : {},
+    children: [
+      {
+        type: 'p',
+        children: 'click me',
+        props: {
+          onClick: (e) => {
+            if (bol.value) {
+              bol.value = false
+            }
+            else {
+              bol.value = true
+            }
+            console.log('clicke me')
+          },
+        },
+      },
+    ],
+  }
+  renderer.render(vnode, document.querySelector('#app'))
+})
