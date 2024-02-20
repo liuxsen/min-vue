@@ -1,3 +1,4 @@
+import { shouldSetAsProps } from '../utils/shouldSetAsProps'
 import { createRenderer } from './createRenderer'
 
 export const renderer = createRenderer({

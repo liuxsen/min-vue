@@ -1,5 +1,4 @@
 import { effect, reactive, shallowReactive } from '@vue/reactivity'
-import { shouldSetAsProps } from '../utils/shouldSetAsProps'
 import { normalizeClass } from '../utils/normalizeClass'
 import { Comment, Fragment, Text } from './constant'
 
@@ -58,7 +57,7 @@ export function createRenderer({
     if (typeof n2.type === 'string') {
       if (!n1) {
         // 没有旧node，第一次渲染，需要挂载n2
-        mountElement(n2, container)
+        mountElement(n2, container, anchor)
       }
       else {
         patchElement(n1, n2)
@@ -68,7 +67,7 @@ export function createRenderer({
       // 文本节点
       if (!n1) {
         const el = n2.el = createText(n2.children)
-        insert(el, container)
+        insert(el, container, anchor)
       }
       else {
         // 如果已经存在旧node，使用新文本节点的内容更新旧文本节点
@@ -81,7 +80,7 @@ export function createRenderer({
     else if (n2.type === Comment) {
       if (!n1) {
         const el = n2.el = createComment(n2.children)
-        insert(el, container)
+        insert(el, container, anchor)
       }
       else {
         // 如果已经存在旧node，使用新文本节点的内容更新旧文本节点
@@ -116,7 +115,7 @@ export function createRenderer({
     }
   }
 
-  function patchElement(n1, n2) {
+  function patchElement(n1, n2, anchor) {
     const el = n2.el = n1.el
     const oldProps = n1.props
     const newProps = n2.props
@@ -147,22 +146,49 @@ export function createRenderer({
       if (Array.isArray(n1.children)) {
         const oldChildren = n1.children
         const newChildren = n2.children
-        const oldLen = oldChildren.length
-        const newLen = newChildren.length
-        const commonLen = Math.min(oldLen, newLen)
-
-        for (let i = 0; i < commonLen; i++) {
-          patch(oldChildren[i], newChildren[i], container)
-        }
-
-        if (newLen > oldLen) {
-          for (let i = commonLen; i < newLen; i++) {
-            patch(null, newChildren[i], container)
+        let lastIndex = 0
+        for (let i = 0; i < newChildren.length; i++) {
+          let find = false // 查找是否有可以用的节点
+          const newVNode = newChildren[i]
+          for (let j = 0; j < oldChildren.length; j++) {
+            const oldVNode = oldChildren[j]
+            if (newVNode.key === oldVNode.key) {
+              find = true
+              patch(oldVNode, newVNode, container)
+              if (j < lastIndex) {
+                // 需要移动
+                const prevVNode = newChildren[i - 1]
+                if (prevVNode) {
+                  const anchor = prevVNode.el.nextSibling
+                  insert(newVNode.el, container, anchor)
+                }
+              }
+              else {
+                lastIndex = j
+              }
+              break
+            }
+          }
+          if (!find) {
+            // 新增节点
+            const preVNode = newChildren[i - 1]
+            let anchor = null
+            if (preVNode) {
+              // 如果有前一个vnode节点，使用他的下一个兄弟节点作为锚点元素
+              anchor = preVNode.el.nextSibling
+            }
+            else {
+              anchor = container.firstChild
+            }
+            patch(null, newVNode, container, anchor)
           }
         }
-        else if (oldLen > newLen) {
-          for (let i = commonLen; i < oldLen; i++) {
-            unmount(oldChildren[i])
+        // 删除旧节点操作
+        for (let i = 0; i < oldChildren.length; i++) {
+          const oldVNode = oldChildren[i]
+          const has = newChildren.find(vnode => vnode.key === oldVNode.key)
+          if (!has) {
+            unmount(oldVNode)
           }
         }
       }
@@ -178,7 +204,7 @@ export function createRenderer({
    * @param {vnode} vnode vnode
    * @param {dom} container dom
    */
-  function mountElement(vnode, container) {
+  function mountElement(vnode, container, anchor) {
     const el = createElement(vnode.type)
     // 建立vnode和dom的联系
     vnode.el = el
@@ -197,7 +223,7 @@ export function createRenderer({
       })
     }
     // container.appendChild(el)
-    insert(el, container)
+    insert(el, container, anchor)
   }
 
   // 挂载组件
