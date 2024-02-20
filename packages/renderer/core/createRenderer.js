@@ -1,4 +1,4 @@
-import { effect, reactive, shallowReactive } from '@vue/reactivity'
+import { effect, reactive, shallowReactive, shallowReadonly } from '@vue/reactivity'
 import { normalizeClass } from '../utils/normalizeClass'
 import { Comment, Fragment, Text } from './constant'
 
@@ -232,13 +232,14 @@ export function createRenderer({
   // 挂载组件
   function mountComponent(vnode, container, anchor) {
     const componentOptions = vnode.type
-    const {
+    let {
       render,
       data,
       props: propsOption,
       beforeCreated, created,
       beforeMount, mounted,
       beforeUpdate, updated,
+      setup,
     } = componentOptions
     const [props, attrs] = resolveProps(propsOption, vnode.props)
 
@@ -249,6 +250,19 @@ export function createRenderer({
       props: shallowReactive(props), // props是浅响应的，只要更新了props，就会触发重新渲染
       isMounted: false,
       subTree: null,
+    }
+    const setupContext = { attrs }
+    const setupResult = setup(shallowReadonly(instance.props), setupContext)
+    // 保存setup返回的数据
+    let setupState = null
+    if (typeof setupResult === 'function') {
+      if (render) {
+        console.error('setup函数返回渲染函数，render函数被忽略')
+        render = setupResult
+      }
+    }
+    else {
+      setupState = setupResult
     }
     vnode.component = instance
 
@@ -261,6 +275,10 @@ export function createRenderer({
         }
         else if (k in props) {
           return props[k]
+        }
+        else if (setupState && k in setupState) {
+          // 渲染上下文增加setupState的支持
+          return setupState[k]
         }
         else {
           console.error('不存在')
