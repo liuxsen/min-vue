@@ -246,7 +246,7 @@ export function createRenderer({
     const state = reactive(data())
     const instance = {
       state,
-      props: shallowReactive(props),
+      props: shallowReactive(props), // props是浅响应的，只要更新了props，就会触发重新渲染
       isMounted: false,
       subTree: null,
     }
@@ -302,6 +302,7 @@ export function createRenderer({
   function patchComponent(n1, n2, anchor) {
     console.log('更新组件')
     console.log(n1, n2)
+    // 保存组件实例到新vnode上
     const instance = (n2.component = n1.component)
     const { props } = instance
     if (hasPropsChanged(n1.props, n2.props)) {
