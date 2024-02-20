@@ -1,4 +1,4 @@
-import { effect, reactive } from '@vue/reactivity'
+import { effect, reactive, shallowReactive } from '@vue/reactivity'
 import { shouldSetAsProps } from '../utils/shouldSetAsProps'
 import { normalizeClass } from '../utils/normalizeClass'
 import { Comment, Fragment, Text } from './constant'
@@ -189,43 +189,91 @@ export function createRenderer({
   function mountComponent(vnode, container, anchor) {
     const componentOptions = vnode.type
     const {
-      render, data,
+      render,
+      data,
+      props: propsOption,
       beforeCreated, created,
       beforeMount, mounted,
       beforeUpdate, updated,
     } = componentOptions
+    const [props, attrs] = resolveProps(propsOption, vnode.props)
 
     beforeCreated && beforeCreated()
-
     const state = reactive(data())
-
     const instance = {
       state,
+      props: shallowReactive(props),
       isMounted: false,
       subTree: null,
     }
     vnode.component = instance
-    created && created.call(state)
+
+    // 创建渲染上下文对象
+    const renderContext = new Proxy(instance, {
+      get(t, k, r) {
+        const { state, props } = t
+        if (state && k in state) {
+          return state[k]
+        }
+        else if (k in props) {
+          return props[k]
+        }
+        else {
+          console.error('不存在')
+        }
+      },
+      set(t, k, v, r) {
+        const { state, props } = t
+        if (state && k in state) {
+          state[k] = v
+        }
+        else if (k in props) {
+          console.warn('props is readonly')
+        }
+        else {
+          console.error('不存在')
+        }
+      },
+    })
+
+    created && created.call(renderContext)
 
     effect(() => {
-      const subTree = render.call(state, state)
+      debugger
+      const subTree = render.call(renderContext, renderContext)
       if (!instance.isMounted) {
-        beforeMount && beforeMount.call(state)
+        beforeMount && beforeMount.call(renderContext)
         patch(null, subTree, container, anchor)
         instance.isMounted = true
-        mounted && mounted.call(state)
+        mounted && mounted.call(renderContext)
       }
       else {
-        beforeUpdate && beforeUpdate.call(state)
+        beforeUpdate && beforeUpdate.call(renderContext)
         patch(instance.subTree, subTree, container, anchor)
-        updated && updated.call(state)
+        updated && updated.call(renderContext)
       }
       instance.subTree = subTree
     })
   }
   // 更新组件
   function patchComponent(n1, n2, anchor) {
+    console.log('更新组件')
+  }
 
+  // 解析组件props和attrs数据
+  function resolveProps(options, propsData) {
+    const props = {}
+    const attrs = {}
+    for (const key in propsData) {
+      if (key in options) {
+        // 如果为组件传递的props数据在options选项中有定义，是合法的props
+        props[key] = propsData[key]
+      }
+      else {
+        attrs[key] = propsData[key]
+      }
+    }
+    return [props, attrs]
   }
 
   return {

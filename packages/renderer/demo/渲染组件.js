@@ -3,6 +3,7 @@ import { Comment, Fragment, Text } from '../core/constant'
 import { renderer } from '../core/dom'
 
 const bol = ref(false)
+const count = ref(0)
 
 effect(() => {
   const MyComponent = {
@@ -28,21 +29,55 @@ effect(() => {
     updated() {
       console.log('updated')
     },
+    props: {
+      id: String,
+      title: String,
+    },
     render() {
       return {
         type: 'div',
-        children: `foo的值是: ${this.foo}`,
-        props: {
-          onClick: () => {
-            console.log(12111)
-            this.foo += 1
-          },
+        children: `foo的值是: ${this.id}`,
+      }
+    },
+  }
+  const App = {
+    name: 'App',
+    data() {
+      return {
+        info: {
+          count: 1,
         },
+      }
+    },
+    mounted() {
+      setTimeout(() => {
+        this.info.count = 2
+      }, 2000)
+    },
+    render() {
+      return {
+        type: 'div',
+        props: {
+        },
+        children: [
+          {
+            type: 'div',
+            children: `count:${this.info.count}`,
+          },
+          {
+            type: MyComponent,
+            props: {
+              id: 'this_is_id',
+              title: 'title',
+              count: this.info.count,
+            },
+          },
+        ],
       }
     },
   }
   const vnode = {
-    type: MyComponent,
+    type: App,
   }
   renderer.render(vnode, document.querySelector('#app'))
 })
