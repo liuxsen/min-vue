@@ -301,6 +301,37 @@ export function createRenderer({
   // 更新组件
   function patchComponent(n1, n2, anchor) {
     console.log('更新组件')
+    console.log(n1, n2)
+    const instance = (n2.component = n1.component)
+    const { props } = instance
+    if (hasPropsChanged(n1.props, n2.props)) {
+      const [nextProps] = resolveProps(n2.type.props, n2.props)
+      // 更新props
+      for (const key in nextProps) {
+        props[key] = nextProps[key]
+      }
+      // 删除不存在的props
+      for (const k in props) {
+        if (!(k in nextProps)) {
+          delete props[k]
+        }
+      }
+    }
+  }
+
+  function hasPropsChanged(prevProps, nextProps) {
+    const nextKeys = Object.keys(nextProps)
+    const preKeys = Object.keys(prevProps)
+    if (nextKeys.length !== preKeys.length) {
+      return true
+    }
+    //
+    for (let i = 0; i < nextKeys.length; i++) {
+      const key = nextKeys[i]
+      if (nextProps[key] !== prevProps[key])
+        return true
+    }
+    return false
   }
 
   // 解析组件props和attrs数据
