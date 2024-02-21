@@ -37,7 +37,6 @@ export function createRenderer({
     }
     // 如果是组件
     if (typeof vnode.type === 'object') {
-      debugger
       if (vnode.shouldKeepAlive) {
         vnode.keepAliveInstance._deActivate(vnode)
       }
@@ -50,8 +49,15 @@ export function createRenderer({
     }
     const el = vnode.el
     const parent = el.parentNode
+    const needTransition = vnode.transition
     if (parent) {
-      parent.removeChild(el)
+      const performRemove = () => parent.removeChild(el)
+      if (needTransition) {
+        vnode.transition.leave(vnode.el, performRemove)
+      }
+      else {
+        performRemove()
+      }
     }
   }
 
@@ -128,7 +134,6 @@ export function createRenderer({
       console.log('组件')
       if (!n1) {
         if (n2.keptAlive) {
-          debugger
           // 如果组件已经缓存
           n2.keepAliveInstance._activate(n2, container, anchor)
         }
@@ -257,8 +262,15 @@ export function createRenderer({
         patch(null, child, el)
       })
     }
+    const needTransition = vnode.transition
+    if (needTransition) {
+      vnode.transition.beforeEnter(el)
+    }
     // container.appendChild(el)
     insert(el, container, anchor)
+    if (needTransition) {
+      vnode.transition.enter(el)
+    }
   }
 
   // 挂载组件

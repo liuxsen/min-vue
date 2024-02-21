@@ -4,6 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <style>
+    .box {
+      width: 100px;
+      height: 100px;
+      background-color: red;
+    }
+    .enter-from {
+      transform: translate(0px);
+    }
+    .enter-active {
+      transition: all ease .5s;
+    }
+    .enter-to {
+      transform: translate(100px);
+    }
+    .leave-from {
+      transform: translate(0px);
+    }
+    .leave-active {
+      transition: all ease .6s;
+    }
+    .leave-to {
+      transform: translate(50px);
+    }
+  </style>
 </head>
 <body>
   <div id="app">

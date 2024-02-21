@@ -9,4 +9,5 @@
 // import './demo/slot'
 // import './demo/函数组件'
 // import './demo/KeepAlive'
-import './demo/Teleport'
+// import './demo/Teleport'
+import './demo/Transition'
