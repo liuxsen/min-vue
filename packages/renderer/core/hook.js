@@ -20,3 +20,12 @@ export function onCreated(fn) {
     console.log('只能在setup中使用')
   }
 }
+
+export function onUnMounted(fn) {
+  if (currentInstance) {
+    currentInstance.unMounted.push(fn)
+  }
+  else {
+    console.log('只能在setup中使用')
+  }
+}

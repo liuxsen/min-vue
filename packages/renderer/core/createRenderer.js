@@ -35,7 +35,14 @@ export function createRenderer({
       vnode.children.forEach(c => unmount(c))
       return
     }
-    const el = vnode.el
+    let el = vnode.el
+    // 如果是组件
+    if (vnode.component) {
+      const instance = vnode.component
+      el = instance.subTree.el
+      instance.unMounted && instance.unMounted.forEach(hook => hook.call(instance))
+    }
+
     const parent = el.parentNode
     if (parent) {
       parent.removeChild(el)
@@ -245,7 +252,7 @@ export function createRenderer({
     const [props, attrs] = resolveProps(propsOption, vnode.props)
 
     beforeCreated && beforeCreated()
-    const state = reactive(data())
+    const state = reactive(data ? data() : {})
     const instance = {
       state,
       props: shallowReactive(props), // props是浅响应的，只要更新了props，就会触发重新渲染
@@ -253,6 +260,7 @@ export function createRenderer({
       subTree: null,
       mounted: [],
       created: [],
+      unMounted: [],
     }
 
     function emit(event, ...payload) {
@@ -268,7 +276,7 @@ export function createRenderer({
 
     const setupContext = { attrs, emit }
     setCurrentInstance(instance)
-    const setupResult = setup(shallowReadonly(instance.props), setupContext)
+    const setupResult = setup ? setup(shallowReadonly(instance.props), setupContext) : null
     setCurrentInstance(null)
 
     // 保存setup返回的数据
@@ -276,8 +284,8 @@ export function createRenderer({
     if (typeof setupResult === 'function') {
       if (render) {
         console.error('setup函数返回渲染函数，render函数被忽略')
-        render = setupResult
       }
+      render = setupResult
     }
     else {
       setupState = setupResult
