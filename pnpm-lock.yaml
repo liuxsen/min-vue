@@ -15,6 +15,24 @@ importers:
         specifier: ^8.56.0
         version: 8.56.0
 
+  packages/reactivity:
+    devDependencies:
+      '@webpack-cli/serve':
+        specifier: ^2.0.5
+        version: 2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.0.2)(webpack@5.90.2)
+      html-webpack-plugin:
+        specifier: ^5.6.0
+        version: 5.6.0(webpack@5.90.2)
+      webpack:
+        specifier: ^5.90.2
+        version: 5.90.2(webpack-cli@5.1.4)
+      webpack-cli:
+        specifier: ^5.1.4
+        version: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.90.2)
+      webpack-dev-server:
+        specifier: ^5.0.2
+        version: 5.0.2(webpack-cli@5.1.4)(webpack@5.90.2)
+
   packages/renderer:
     dependencies:
       '@vue/reactivity':
