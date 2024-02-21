@@ -260,10 +260,13 @@ export function createRenderer({
 
     beforeCreated && beforeCreated()
     const state = reactive(data ? data() : {})
+    const slots = vnode.children || {}
+
     const instance = {
       state,
       props: shallowReactive(props), // props是浅响应的，只要更新了props，就会触发重新渲染
       isMounted: false,
+      slots,
       subTree: null,
       mounted: [],
       created: [],
@@ -280,8 +283,7 @@ export function createRenderer({
         console.error('事件不存在')
       }
     }
-
-    const setupContext = { attrs, emit }
+    const setupContext = { attrs, emit, slots }
     setCurrentInstance(instance)
     const setupResult = setup ? setup(shallowReadonly(instance.props), setupContext) : null
     setCurrentInstance(null)
@@ -302,7 +304,10 @@ export function createRenderer({
     // 创建渲染上下文对象
     const renderContext = new Proxy(instance, {
       get(t, k, r) {
-        const { state, props } = t
+        const { state, props, slots } = t
+        if (k === '$slots') {
+          return slots
+        }
         if (state && k in state) {
           return state[k]
         }
