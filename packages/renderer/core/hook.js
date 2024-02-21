@@ -84,3 +84,24 @@ export const KeepAlive = {
     }
   },
 }
+
+export const Teleport = {
+  name: 'Teleport',
+  __isTeleport: true,
+  props: {
+    to: String,
+  },
+  process(n1, n2, container, anchor, internals) {
+    const { patch } = internals
+    if (!n1) {
+      // 全新挂载
+      const target = typeof n2.props.to === 'string'
+        ? document.querySelector(n2.props.to)
+        : n2.props.to
+      n2.children.forEach(c => patch(null, c, target, anchor))
+    }
+    else {
+      // 更新
+    }
+  },
+}
