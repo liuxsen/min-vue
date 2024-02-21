@@ -13,7 +13,7 @@ effect(() => {
       return {
         type: Teleport,
         props: {
-          to: '#teleport-box',
+          to: bol.value ? '#teleport-box' : '#overlay',
         },
         children: [
           {
