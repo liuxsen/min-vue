@@ -30,6 +30,8 @@ export function onUnMounted(fn) {
   }
 }
 
+// TODO: 缓存管理
+
 export const KeepAlive = {
   // 用作标识
   __isKeepAlive: true,
