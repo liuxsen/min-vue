@@ -33,12 +33,14 @@ export function onUnMounted(fn) {
 export const KeepAlive = {
   // 用作标识
   __isKeepAlive: true,
-  props: {},
+  props: {
+    include: RegExp,
+    exclude: RegExp,
+  },
   data() {
     return {}
   },
   setup(props, { slots }) {
-    debugger
     // 创建一个缓存对象 key: vnode.type value: vnode
     const cache = new Map()
     const instance = currentInstance
@@ -54,6 +56,16 @@ export const KeepAlive = {
       const rawVNode = slots.default()
       // 如果不是组件，直接渲染，非组件的虚拟节点无法被keepAlive
       if (typeof rawVNode.type !== 'object') {
+        return rawVNode
+      }
+      const name = rawVNode.type.name
+      // 如果name无法被include匹配;或者被exclude匹配，那么就直接返回vnode，不缓存
+      if (name
+        && (
+          (props.include && !props.include.test(name))
+          || (props.exclude && props.exclude.test(name))
+        )
+      ) {
         return rawVNode
       }
       const cachedVNode = cache.get(rawVNode.type)

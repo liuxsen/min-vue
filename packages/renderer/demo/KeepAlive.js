@@ -32,6 +32,9 @@ effect(() => {
         children: [
           {
             type: KeepAlive,
+            props: {
+              exclude: /^First/,
+            },
             children: {
               default() {
                 return {
