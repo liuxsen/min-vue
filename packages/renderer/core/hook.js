@@ -92,7 +92,7 @@ export const Teleport = {
     to: String,
   },
   process(n1, n2, container, anchor, internals) {
-    const { patch } = internals
+    const { patch, patchChildren } = internals
     if (!n1) {
       // 全新挂载
       const target = typeof n2.props.to === 'string'
@@ -102,6 +102,7 @@ export const Teleport = {
     }
     else {
       // 更新
+      patchChildren(n1, n2, container)
     }
   },
 }

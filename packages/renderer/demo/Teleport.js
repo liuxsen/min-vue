@@ -3,6 +3,8 @@ import { Comment, Fragment, Text } from '../core/constant'
 import { renderer } from '../core/dom'
 import { Teleport } from '../core/hook'
 
+const bol = ref(true)
+
 effect(() => {
   const Parent = {
     name: 'Parent',
@@ -15,10 +17,19 @@ effect(() => {
         },
         children: [
           {
-            type: 'h1', children: 'title',
+            type: 'h1',
+            key: 1,
+            children: `title: ${bol.value}`,
+            props: {
+              onClick() {
+                bol.value = !bol.value
+              },
+            },
           },
           {
-            type: 'p', children: 'content',
+            key: 2,
+            type: 'p',
+            children: 'content',
           },
         ],
       }
