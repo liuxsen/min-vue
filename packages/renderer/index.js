@@ -5,4 +5,5 @@
 // import './demo/setup函数'
 // import './demo/emit'
 // import './demo/onMounted'
-import './demo/异步组件'
+// import './demo/异步组件'
+import './demo/函数组件'

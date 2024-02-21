@@ -106,7 +106,7 @@ export function createRenderer({
         patchChildren(n1, n2, container)
       }
     }
-    else if (typeof n2.type === 'object') {
+    else if (typeof n2.type === 'object' || typeof n2.type === 'function') {
       // 组件
       console.log('组件')
       if (!n1) {
@@ -239,7 +239,14 @@ export function createRenderer({
 
   // 挂载组件
   function mountComponent(vnode, container, anchor) {
-    const componentOptions = vnode.type
+    const isFunctional = typeof vnode.type === 'function'
+    let componentOptions = vnode.type
+    if (isFunctional) {
+      componentOptions = {
+        render: vnode.type,
+        props: vnode.type.props,
+      }
+    }
     let {
       render,
       data,
