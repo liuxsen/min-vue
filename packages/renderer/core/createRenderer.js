@@ -273,6 +273,16 @@ export function createRenderer({
       unMounted: [],
     }
 
+    const isKeepAlive = vnode.type.__isKeepAlive
+    if (isKeepAlive) {
+      instance.keepAliveCtx = {
+        move(vnode, container, anchor) {
+          insert(vnode.component.subTree.el, container, anchor)
+        },
+        createElement,
+      }
+    }
+
     function emit(event, ...payload) {
       const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
       const handler = instance.props[eventName]

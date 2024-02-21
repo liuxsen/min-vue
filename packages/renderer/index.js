@@ -6,4 +6,6 @@
 // import './demo/emit'
 // import './demo/onMounted'
 // import './demo/异步组件'
-import './demo/slot'
+// import './demo/slot'
+// import './demo/函数组件'
+import './demo/KeepAlive'

@@ -29,3 +29,41 @@ export function onUnMounted(fn) {
     console.log('只能在setup中使用')
   }
 }
+
+export const KeepAlive = {
+  // 用作标识
+  __isKeepAlive: true,
+  setup(props, { slots }) {
+    debugger
+    // 创建一个缓存对象 key: vnode.type value: vnode
+    const cache = new Map()
+    const instance = currentInstance
+    // TODO:
+    const { move, createElement } = instance.keepAliveCtx
+    const storageContainer = createElement('div')
+    instance._activate = (vnode, container, anchor) => {
+      move(vnode, container, anchor)
+    }
+    instance._deActivate = (vnode) => {
+      move(vnode, storageContainer)
+    }
+    return () => {
+      const rawVNode = slots.default()
+      // 如果不是组件，直接渲染，非组件的虚拟节点无法被keepAlive
+      if (typeof rawVNode.type !== 'object') {
+        return rawVNode
+      }
+      const cachedVNode = cache.get(rawVNode.type)
+      if (cachedVNode) {
+        rawVNode.component = cachedVNode.component
+        rawVNode.keptAlive = true
+      }
+      else {
+        cache.set(rawVNode.type, rawVNode)
+      }
+      rawVNode.shouldKeepAlive = true
+      rawVNode.keepAliveInstance = instance
+      return rawVNode
+    }
+  },
+}
