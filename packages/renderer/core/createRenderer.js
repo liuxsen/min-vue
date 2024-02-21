@@ -35,14 +35,20 @@ export function createRenderer({
       vnode.children.forEach(c => unmount(c))
       return
     }
-    let el = vnode.el
     // 如果是组件
-    if (vnode.component) {
-      const instance = vnode.component
-      el = instance.subTree.el
-      instance.unMounted && instance.unMounted.forEach(hook => hook.call(instance))
+    if (typeof vnode.type === 'object') {
+      debugger
+      if (vnode.shouldKeepAlive) {
+        vnode.keepAliveInstance._deActivate(vnode)
+      }
+      else {
+        const instance = vnode.component
+        instance.unMounted && instance.unMounted.forEach(hook => hook.call(instance))
+        unmount(vnode.component.subTree)
+      }
+      return
     }
-
+    const el = vnode.el
     const parent = el.parentNode
     if (parent) {
       parent.removeChild(el)
@@ -110,7 +116,14 @@ export function createRenderer({
       // 组件
       console.log('组件')
       if (!n1) {
-        mountComponent(n2, container, anchor)
+        if (n2.keptAlive) {
+          debugger
+          // 如果组件已经缓存
+          n2.keepAliveInstance._activate(n2, container, anchor)
+        }
+        else {
+          mountComponent(n2, container, anchor)
+        }
       }
       else {
         patchComponent(n1, n2, anchor)

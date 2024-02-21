@@ -33,12 +33,15 @@ export function onUnMounted(fn) {
 export const KeepAlive = {
   // 用作标识
   __isKeepAlive: true,
+  props: {},
+  data() {
+    return {}
+  },
   setup(props, { slots }) {
     debugger
     // 创建一个缓存对象 key: vnode.type value: vnode
     const cache = new Map()
     const instance = currentInstance
-    // TODO:
     const { move, createElement } = instance.keepAliveCtx
     const storageContainer = createElement('div')
     instance._activate = (vnode, container, anchor) => {

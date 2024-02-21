@@ -4,6 +4,8 @@ import { renderer } from '../core/dom'
 import { KeepAlive, onMounted, onUnMounted } from '../core/hook'
 import { defineAsyncComponent } from '../core/defineAsyncComponent'
 
+const bol = ref(true)
+
 effect(() => {
   const First = {
     name: 'First',
@@ -11,15 +13,14 @@ effect(() => {
       return {
         type: 'div',
         children: 'first',
-      }
-    },
-  }
-  const Second = {
-    name: 'First',
-    render() {
-      return {
-        type: 'div',
-        children: 'Second',
+        props: {
+          onClick() {
+            bol.value = false
+            setTimeout(() => {
+              bol.value = true
+            }, 2000)
+          },
+        },
       }
     },
   }
@@ -27,14 +28,19 @@ effect(() => {
     name: 'App',
     render() {
       return {
-        type: KeepAlive,
-        children: {
-          default() {
-            return {
-              type: First,
-            }
+        type: 'div',
+        children: [
+          {
+            type: KeepAlive,
+            children: {
+              default() {
+                return {
+                  type: bol.value ? First : 'div',
+                }
+              },
+            },
           },
-        },
+        ],
       }
     },
   }
