@@ -1,9 +1,11 @@
 const bucket = new Set()
+let activeEffect // 保存被注册的副作用函数
+
 const data = { text: 'hello world' }
 
 const obj = new Proxy(data, {
   get(target, k) {
-    bucket.add(effect)
+    bucket.add(activeEffect)
     return target[k]
   },
   set(target, k, value) {
@@ -13,12 +15,13 @@ const obj = new Proxy(data, {
   },
 })
 
-export function effect() {
-  document.body.innerHTML = obj.text
+export function effect(fn) {
+  activeEffect = fn
+  fn()
 }
 
-effect()
+effect(() => {
+  document.body.innerHTML = obj.text
+})
 
-setTimeout(() => {
-  obj.text = 'hello vue3'
-}, 2000)
+obj.text = 'vue3 !!!'
