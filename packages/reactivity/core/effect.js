@@ -25,6 +25,7 @@
  * 6. 调度执行
  * 6.1 屏蔽过渡状态，减少副作用函数的执行次数
  *  利用set保存effectFn；使用flushjob函数执行set中的effectfn；
+ * 7. computed + lazy
  */
 
 const bucket = new WeakMap()
@@ -103,20 +104,27 @@ export function effect(fn, options = {
     jobQueue.add(effectFn)
     flushJob()
   },
+  lazy: true,
 }) {
   const effectFn = () => {
     // 调用cleanup完成清除工作
     cleanup(effectFn)
     activeEffect = effectFn
     effectStack.push(effectFn)
-    fn()
+    const res = fn()
     effectStack.pop()
     activeEffect = effectStack[effectStack.length - 1]
+    return res
   }
   effectFn.options = options
-  // 用来存储所有与该副作用函数相关联的的依赖集合
   effectFn.deps = []
-  effectFn()
+  if (!effectFn.options.lazy) {
+    // 用来存储所有与该副作用函数相关联的的依赖集合
+    effectFn()
+  }
+  else {
+    return effectFn
+  }
 }
 
 function cleanup(effectFn) {
@@ -127,12 +135,27 @@ function cleanup(effectFn) {
   effectFn.deps.length = 0
 }
 
-effect(() => {
-  console.log(obj.count)
+function computed(getter) {
+  const effectFn = effect(getter, {
+    lazy: true,
+  })
+  const obj = {
+    get value() {
+      return effectFn()
+    },
+  }
+  return obj
+}
+
+const computedValue = computed(() => {
+  console.log('log')
+  return obj.count + 1
 })
 obj.count++
 obj.count++
 obj.count++
 obj.count++
 obj.count++
-console.log('结束了')
+obj.count++
+obj.count++
+console.log(computedValue.value)
