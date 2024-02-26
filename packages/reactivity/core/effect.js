@@ -23,6 +23,8 @@
  * 5. 自增操作 obj.foo++ 导致无限递归循环
  *  在trigger函数中增加守卫，如果activeEffect === 副作用函数，则不执行
  * 6. 调度执行
+ * 6.1 屏蔽过渡状态，减少副作用函数的执行次数
+ *  利用set保存effectFn；使用flushjob函数执行set中的effectfn；
  */
 
 const bucket = new WeakMap()
@@ -80,11 +82,26 @@ function trigger(target, key, value) {
   })
 }
 
+const jobQueue = new Set()
+const p = Promise.resolve()
+let isFlushIng = false
+function flushJob() {
+  if (isFlushIng)
+    return
+  isFlushIng = true
+  p.then(() => {
+    jobQueue.forEach((job) => {
+      job()
+    })
+  }).finally(() => {
+    isFlushIng = false
+  })
+}
+
 export function effect(fn, options = {
   scheduler: (effectFn) => {
-    setTimeout(() => {
-      effectFn()
-    })
+    jobQueue.add(effectFn)
+    flushJob()
   },
 }) {
   const effectFn = () => {
@@ -113,5 +130,9 @@ function cleanup(effectFn) {
 effect(() => {
   console.log(obj.count)
 })
+obj.count++
+obj.count++
+obj.count++
+obj.count++
 obj.count++
 console.log('结束了')
