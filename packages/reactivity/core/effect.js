@@ -26,6 +26,7 @@
  * 6.1 屏蔽过渡状态，减少副作用函数的执行次数
  *  利用set保存effectFn；使用flushjob函数执行set中的effectfn；
  * 7. computed + lazy
+ *  7.1 缓存计算的值
  */
 
 const bucket = new WeakMap()
@@ -136,12 +137,21 @@ function cleanup(effectFn) {
 }
 
 function computed(getter) {
+  let dirty = true
+  let value
   const effectFn = effect(getter, {
     lazy: true,
+    scheduler: () => {
+      dirty = true
+    },
   })
   const obj = {
     get value() {
-      return effectFn()
+      if (!dirty)
+        return value
+      value = effectFn()
+      dirty = false
+      return value
     },
   }
   return obj
@@ -158,4 +168,7 @@ obj.count++
 obj.count++
 obj.count++
 obj.count++
+console.log(computedValue.value)
+console.log(computedValue.value)
+console.log(computedValue.value)
 console.log(computedValue.value)
