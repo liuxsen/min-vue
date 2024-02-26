@@ -20,13 +20,15 @@
  * 第三步 触发proxy的set动作，触发trigger函数；再次执行effectFn；清除在deps中的effectFn；达到副作用函数清除任务
  * 4. 问题： effect函数嵌套问题
  *  解决方案： 使用effectStack
+ * 5. 自增操作 obj.foo++ 导致无限递归循环
+ *  在trigger函数中增加守卫，如果activeEffect === 副作用函数，则不执行
  */
 
 const bucket = new WeakMap()
 const effectStack = [] // 副作用函数栈
 let activeEffect // 保存被注册的副作用函数
 
-const data = { text: 'hello world', ok: true }
+const data = { text: 'hello world', ok: true, count: 0 }
 
 const obj = new Proxy(data, {
   get(target, key) {
@@ -61,7 +63,12 @@ function trigger(target, key, value) {
   if (!depsMap)
     return
   const effects = depsMap.get(key)
-  const effectsToRun = new Set(effects)
+  const effectsToRun = new Set()
+  effects && effects.forEach((fn) => {
+    if (fn !== activeEffect) {
+      effectsToRun.add(fn)
+    }
+  })
   effectsToRun.forEach(fn => fn())
 }
 
@@ -89,10 +96,6 @@ function cleanup(effectFn) {
 }
 
 effect(() => {
-  effect(() => {
-    console.log(obj.text)
-  })
-  console.log(obj.ok)
+  obj.count++
+  console.log(obj.count)
 })
-
-obj.ok = false
