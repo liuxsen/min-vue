@@ -22,6 +22,7 @@
  *  解决方案： 使用effectStack
  * 5. 自增操作 obj.foo++ 导致无限递归循环
  *  在trigger函数中增加守卫，如果activeEffect === 副作用函数，则不执行
+ * 6. 调度执行
  */
 
 const bucket = new WeakMap()
@@ -69,10 +70,23 @@ function trigger(target, key, value) {
       effectsToRun.add(fn)
     }
   })
-  effectsToRun.forEach(fn => fn())
+  effectsToRun.forEach((fn) => {
+    if (fn.options.scheduler) {
+      fn.options.scheduler(fn)
+    }
+    else {
+      fn()
+    }
+  })
 }
 
-export function effect(fn) {
+export function effect(fn, options = {
+  scheduler: (effectFn) => {
+    setTimeout(() => {
+      effectFn()
+    })
+  },
+}) {
   const effectFn = () => {
     // 调用cleanup完成清除工作
     cleanup(effectFn)
@@ -82,6 +96,7 @@ export function effect(fn) {
     effectStack.pop()
     activeEffect = effectStack[effectStack.length - 1]
   }
+  effectFn.options = options
   // 用来存储所有与该副作用函数相关联的的依赖集合
   effectFn.deps = []
   effectFn()
@@ -96,6 +111,7 @@ function cleanup(effectFn) {
 }
 
 effect(() => {
-  obj.count++
   console.log(obj.count)
 })
+obj.count++
+console.log('结束了')
